@@ -52,7 +52,7 @@
   "gnetId": null,
   "graphTooltip": 1,
   "id": 32,
-  "iteration": 1692177797027,
+  "iteration": 1696910636455,
   "links": [],
   "panels": [
     {
@@ -13755,7 +13755,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 11
       },
       "id": 153,
       "panels": [
@@ -14458,6 +14458,7 @@
               "color": {
                 "mode": "palette-classic"
               },
+              "mappings": [],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -14471,7 +14472,6 @@
                   }
                 ]
               },
-              "mappings": [],
               "unit": "short"
             },
             "overrides": []
@@ -14484,21 +14484,21 @@
           },
           "id": 23763571993,
           "options": {
-            "reduceOptions": {
-              "values": false,
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": ""
-            },
-            "text": {},
-            "pieType": "pie",
             "displayLabels": [],
             "legend": {
               "displayMode": "list",
               "placement": "right",
               "values": []
-            }
+            },
+            "pieType": "pie",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {}
           },
           "pluginVersion": "7.5.11",
           "targets": [
@@ -14526,7 +14526,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 12
       },
       "id": 150,
       "panels": [
@@ -14547,7 +14547,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 12
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 46,
@@ -14644,7 +14644,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 12
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 47,
@@ -14741,7 +14741,7 @@
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 12
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 70,
@@ -14852,7 +14852,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 19
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 71,
@@ -14949,7 +14949,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 19
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 93,
@@ -15035,41 +15035,34 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_TEST-CLUSTER}",
-          "description": "TiDB fast analyze statistics ",
-          "editable": true,
-          "error": false,
+          "description": "TiDB table stats healthy distribution",
           "fieldConfig": {
             "defaults": {},
             "overrides": []
           },
-          "fill": 1,
+          "fill": 0,
           "fillGradient": 0,
-          "grid": {},
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 19
+            "y": 20
           },
           "hiddenSeries": false,
-          "id": 173,
+          "id": 233,
           "legend": {
-            "alignAsTable": true,
             "avg": false,
             "current": false,
-            "max": true,
+            "max": false,
             "min": false,
-            "rightSide": true,
             "show": true,
-            "sort": "avg",
-            "sortDesc": true,
             "total": false,
-            "values": true
+            "values": false
           },
           "lines": true,
-          "linewidth": 2,
+          "linewidth": 1,
           "links": [],
-          "nullPointMode": "null as zero",
+          "nullPointMode": "null",
           "options": {
             "alertThreshold": true
           },
@@ -15084,24 +15077,25 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "histogram_quantile(1, sum(rate(tidb_statistics_fast_analyze_status_bucket{k8s_cluster=\"$k8s_cluster\", tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\"}[1m])) by (le, type))",
+              "exemplar": true,
+              "expr": "avg(tidb_statistics_stats_healthy{k8s_cluster=\"$k8s_cluster\", tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\"}) by (type)",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{type}}",
               "refId": "A",
-              "step": 40
+              "step": 30
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Fast Analyze Status 100",
+          "title": "Stats Healthy Distribution",
           "tooltip": {
-            "msResolution": false,
             "shared": true,
-            "sort": 2,
-            "value_type": "cumulative"
+            "sort": 0,
+            "value_type": "individual"
           },
           "type": "graph",
           "xaxis": {
@@ -15113,7 +15107,7 @@
           },
           "yaxes": [
             {
-              "format": "none",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -15126,7 +15120,7 @@
               "logBase": 1,
               "max": null,
               "min": null,
-              "show": false
+              "show": true
             }
           ],
           "yaxis": {
@@ -15151,7 +15145,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 26
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 229,
@@ -15261,7 +15255,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 26
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 230,
@@ -15360,104 +15354,6 @@
           "dashLength": 10,
           "dashes": false,
           "datasource": "${DS_TEST-CLUSTER}",
-          "description": "TiDB table stats healthy distribution",
-          "fieldConfig": {
-            "defaults": {},
-            "overrides": []
-          },
-          "fill": 0,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 8,
-            "x": 16,
-            "y": 26
-          },
-          "hiddenSeries": false,
-          "id": 233,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "null",
-          "options": {
-            "alertThreshold": true
-          },
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "avg(tidb_statistics_stats_healthy{k8s_cluster=\"$k8s_cluster\", tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\"}) by (type)",
-              "format": "time_series",
-              "interval": "",
-              "intervalFactor": 2,
-              "legendFormat": "{{type}}",
-              "refId": "A",
-              "step": 30
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Stats Healthy Distribution",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "${DS_TEST-CLUSTER}",
           "description": "TiDB managing stats cache",
           "editable": true,
           "error": false,
@@ -15472,7 +15368,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 33
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 234,
@@ -15584,7 +15480,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 33
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 235,
@@ -15687,7 +15583,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 40
+            "y": 41
           },
           "hiddenSeries": false,
           "id": 236,
@@ -15806,7 +15702,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 40
+            "y": 41
           },
           "hiddenSeries": false,
           "id": 237,
@@ -15911,7 +15807,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 161,
       "panels": [
@@ -16106,7 +16002,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 14
       },
       "id": 151,
       "panels": [
@@ -16393,7 +16289,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 15
       },
       "id": 152,
       "panels": [
@@ -17362,7 +17258,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 16
       },
       "id": 178,
       "panels": [
@@ -17771,7 +17667,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 232,
       "panels": [
@@ -18433,7 +18329,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "id": 257,
       "panels": [
@@ -20224,7 +20120,9 @@
             "displayMode": "lcd",
             "orientation": "horizontal",
             "reduceOptions": {
-              "calcs": ["lastNotNull"],
+              "calcs": [
+                "lastNotNull"
+              ],
               "fields": "",
               "values": false
             },
@@ -20413,7 +20311,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 291,
       "panels": [
@@ -20619,7 +20517,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 20
       },
       "id": 309,
       "panels": [
@@ -20961,7 +20859,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 21
       },
       "id": 315,
       "panels": [

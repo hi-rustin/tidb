@@ -2796,6 +2796,17 @@ func TestIssue38756(t *testing.T) {
 	tk.MustQuery("SELECT DISTINCT cast(1 as double) FROM t").Check(testkit.Rows("1"))
 }
 
+func TestSemiJoin(t *testing.T) {
+	store := testkit.CreateMockStore(t)
+	tk := testkit.NewTestKit(t, store)
+	tk.MustExec("use test")
+	tk.MustExec("create table t1 (a int)")
+	tk.MustExec("create table t2 (a int)")
+	tk.MustExec("insert into t1 values (1), (2), (3)")
+	tk.MustExec("insert into t2 values (1), (2), (3)")
+	tk.MustQuery("select * from t1 where exists (select /*+ SEMI_JOIN_REWRITE() */ * from t2 where t1.a = t2.a)").Check(testkit.Rows("1", "2", "3"))
+}
+
 func TestIssue50043(t *testing.T) {
 	store := testkit.CreateMockStore(t)
 	tk := testkit.NewTestKit(t, store)

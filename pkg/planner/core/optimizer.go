@@ -319,6 +319,9 @@ func doOptimize(
 ) (LogicalPlan, PhysicalPlan, float64, error) {
 	sessVars := sctx.GetSessionVars()
 	flag = adjustOptimizationFlags(flag, logic)
+	if strings.Contains(ToString(logic), "t1") {
+		logutil.Logger(ctx).Info("doOptimize", zap.String("logic", ToString(logic)))
+	}
 	logic, err := logicalOptimize(ctx, flag, logic)
 	if err != nil {
 		return nil, nil, 0, err

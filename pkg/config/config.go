@@ -952,7 +952,7 @@ var defaultConf = Config{
 		EnableSlowLog:       *NewAtomicBool(logutil.DefaultTiDBEnableSlowLog),
 	},
 	Instance: Instance{
-		TiDBGeneralLog:              false,
+		TiDBGeneralLog:              true,
 		EnablePProfSQLCPU:           false,
 		DDLSlowOprThreshold:         DefDDLSlowOprThreshold,
 		ExpensiveQueryTimeThreshold: DefExpensiveQueryTimeThreshold,

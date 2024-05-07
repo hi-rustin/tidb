@@ -225,13 +225,12 @@ func (e *AnalyzeColumnsExecV2) buildSamplingStats(
 		}
 	}()
 
+	// Init the root collector and we will merge the result from sub-collectors to it.
 	l := len(e.analyzePB.ColReq.ColumnsInfo) + len(e.analyzePB.ColReq.ColumnGroups)
 	rootRowCollector := statistics.NewRowSampleCollector(int(e.analyzePB.ColReq.SampleSize), e.analyzePB.ColReq.GetSampleRate(), l)
 	for i := 0; i < l; i++ {
 		rootRowCollector.Base().FMSketches = append(rootRowCollector.Base().FMSketches, statistics.NewFMSketch(statistics.MaxSketchSize))
 	}
-
-	sc := e.ctx.GetSessionVars().StmtCtx
 
 	// Start workers to merge the result from collectors.
 	mergeResultCh := make(chan *samplingMergeResult, 1)
@@ -246,6 +245,7 @@ func (e *AnalyzeColumnsExecV2) buildSamplingStats(
 		}()
 		return readDataAndSendTask(e.ctx, e.resultHandler, mergeTaskCh, e.memTracker)
 	})
+	// Merge the result from collectors.
 	e.samplingMergeWg = &util.WaitGroupWrapper{}
 	e.samplingMergeWg.Add(samplingStatsConcurrency)
 	for i := 0; i < samplingStatsConcurrency; i++ {
@@ -254,7 +254,6 @@ func (e *AnalyzeColumnsExecV2) buildSamplingStats(
 			e.subMergeWorker(mergeResultCh, mergeTaskCh, l, id)
 		})
 	}
-	// Merge the result from collectors.
 	mergeWorkerPanicCnt := 0
 	mergeEg, mergeCtx := errgroup.WithContext(context.Background())
 	mergeEg.Go(func() (err error) {
@@ -303,6 +302,7 @@ func (e *AnalyzeColumnsExecV2) buildSamplingStats(
 	}
 
 	// Decode the data from sample collectors.
+	sc := e.ctx.GetSessionVars().StmtCtx
 	virtualColIdx := buildVirtualColumnIndex(e.schemaForVirtualColEval, e.colsInfo)
 	if len(virtualColIdx) > 0 {
 		fieldTps := make([]*types.FieldType, 0, len(virtualColIdx))

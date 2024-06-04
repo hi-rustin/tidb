@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pingcap/errors"
@@ -293,9 +294,15 @@ func doOptimize(
 ) (base.LogicalPlan, base.PhysicalPlan, float64, error) {
 	sessVars := sctx.GetSessionVars()
 	flag = adjustOptimizationFlags(flag, logic)
+	if strings.Contains(ToString(logic), "t1.a") {
+		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
+	}
 	logic, err := logicalOptimize(ctx, flag, logic)
 	if err != nil {
 		return nil, nil, 0, err
+	}
+	if strings.Contains(ToString(logic), "t1.a") {
+		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
 	}
 
 	if !AllowCartesianProduct.Load() && existsCartesianProduct(logic) {
@@ -309,8 +316,13 @@ func doOptimize(
 	if err != nil {
 		return nil, nil, 0, err
 	}
+	if strings.Contains(ToString(logic), "t1.a") {
+		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
+	}
 	finalPlan := postOptimize(ctx, sctx, physical)
-
+	if strings.Contains(ToString(logic), "t1.a") {
+		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
+	}
 	if sessVars.StmtCtx.EnableOptimizerCETrace {
 		refineCETrace(sctx)
 	}
@@ -1012,6 +1024,9 @@ func logicalOptimize(ctx context.Context, flag uint64, logic base.LogicalPlan) (
 		logic, planChanged, err = rule.optimize(ctx, logic, opt)
 		if err != nil {
 			return nil, err
+		}
+		if strings.Contains(ToString(logic), "t1.a") {
+			logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)), zap.String("rule", rule.name()))
 		}
 		// Compute interaction rules that should be optimized again
 		interactionRule, ok := optInteractionRuleList[rule]

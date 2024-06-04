@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pingcap/tidb/pkg/expression"
 	"github.com/pingcap/tidb/pkg/kv"
@@ -33,6 +34,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ppdSolver is the solver for predicate push down.
 type ppdSolver struct{}
 
 // exprPrefixAdder is the wrapper struct to add tidb_shard(x) = val for `OrigConds`
@@ -90,6 +92,9 @@ func splitSetGetVarFunc(filters []expression.Expression) ([]expression.Expressio
 
 // PredicatePushDown implements base.LogicalPlan PredicatePushDown interface.
 func (p *LogicalSelection) PredicatePushDown(predicates []expression.Expression, opt *optimizetrace.LogicalOptimizeOp) ([]expression.Expression, base.LogicalPlan) {
+	if strings.Contains(ToString(p), "t1.a") {
+		logutil.Logger(context.Background()).Info("PredicatePushDown", zap.Any("predicates", predicates))
+	}
 	predicates = DeleteTrueExprs(p, predicates)
 	p.Conditions = DeleteTrueExprs(p, p.Conditions)
 	var child base.LogicalPlan

@@ -28,3 +28,15 @@ func TestChangePumpAndDrainer(t *testing.T) {
 	tk.MustMatchErrMsg("change pump to node_state ='paused' for node_id 'pump1'", "URL scheme must be http, https, unix, or unixs.*")
 	tk.MustMatchErrMsg("change drainer to node_state ='paused' for node_id 'drainer1'", "URL scheme must be http, https, unix, or unixs.*")
 }
+
+func TestHashJoin(t *testing.T) {
+	store := testkit.CreateMockStore(t)
+	tk := testkit.NewTestKit(t, store)
+	tk.MustExec("use test")
+	tk.MustExec("create table t1 (a int, b int, key(a));")
+	tk.MustExec("create table t2 (a int, b int, key(a));")
+	tk.MustExec("insert into t1 values (1, 1), (2, 2), (3, 3);")
+	tk.MustExec("insert into t2 values (1, 1), (2, 2), (3, 3);")
+
+	tk.MustQuery("select /*+ HASH_JOIN(t1, t2) */ * from t1 join t2 on t1.a = t2.a;").Check(testkit.Rows("1 1 1 1", "2 2 2 2", "3 3 3 3"))
+}

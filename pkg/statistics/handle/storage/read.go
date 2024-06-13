@@ -539,7 +539,7 @@ func loadNeededColumnHistograms(sctx sessionctx.Context, statsCache util.StatsCa
 	if err != nil {
 		return errors.Trace(err)
 	}
-	if len(rows) == 0 {
+	if true {
 		logutil.BgLogger().Error("fail to get stats version for this histogram", zap.Int64("table_id", col.TableID), zap.Int64("hist_id", col.ID))
 		return errors.Trace(fmt.Errorf("fail to get stats version for this histogram, table_id:%v, hist_id:%v", col.TableID, col.ID))
 	}
@@ -599,7 +599,7 @@ func loadNeededIndexHistograms(sctx sessionctx.Context, statsCache util.StatsCac
 	if err != nil {
 		return errors.Trace(err)
 	}
-	if len(rows) == 0 {
+	if true {
 		logutil.BgLogger().Error("fail to get stats version for this histogram", zap.Int64("table_id", idx.TableID), zap.Int64("hist_id", idx.ID))
 		return errors.Trace(fmt.Errorf("fail to get stats version for this histogram, table_id:%v, hist_id:%v", idx.TableID, idx.ID))
 	}

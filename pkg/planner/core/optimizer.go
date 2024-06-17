@@ -317,11 +317,11 @@ func doOptimize(
 		return nil, nil, 0, err
 	}
 	if strings.Contains(ToString(logic), "t1.a") {
-		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
+		logutil.BgLogger().Info("doOptimize", zap.String("physical", ToString(logic)))
 	}
 	finalPlan := postOptimize(ctx, sctx, physical)
 	if strings.Contains(ToString(logic), "t1.a") {
-		logutil.BgLogger().Info("doOptimize", zap.String("logic", ToString(logic)))
+		logutil.BgLogger().Info("doOptimize", zap.String("post", ToString(logic)))
 	}
 	if sessVars.StmtCtx.EnableOptimizerCETrace {
 		refineCETrace(sctx)

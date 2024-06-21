@@ -558,7 +558,7 @@ func CalculateIndicatorsForPartitions(
 	}
 
 	avgChange = totalChangePercent / count
-	avgSize = totalSize / count
+	avgSize = (totalSize / count) * float64(len(tblInfo.Partition.Definitions))
 	avgLastAnalyzeDuration = totalLastAnalyzeDuration / time.Duration(count)
 
 	return avgChange, avgSize, avgLastAnalyzeDuration, partitionNames

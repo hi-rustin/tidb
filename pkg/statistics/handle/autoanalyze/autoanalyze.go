@@ -33,6 +33,7 @@ import (
 	"github.com/pingcap/tidb/pkg/sessionctx/variable"
 	"github.com/pingcap/tidb/pkg/statistics"
 	"github.com/pingcap/tidb/pkg/statistics/handle/autoanalyze/exec"
+	"github.com/pingcap/tidb/pkg/statistics/handle/autoanalyze/priorityqueue"
 	"github.com/pingcap/tidb/pkg/statistics/handle/autoanalyze/refresher"
 	"github.com/pingcap/tidb/pkg/statistics/handle/lockstats"
 	statslogutil "github.com/pingcap/tidb/pkg/statistics/handle/logutil"
@@ -45,6 +46,9 @@ import (
 	"github.com/pingcap/tidb/pkg/util/timeutil"
 	"go.uber.org/zap"
 )
+
+var worker *refresher.Worker
+var jobChan chan priorityqueue.AnalysisJob
 
 // statsAnalyze implements util.StatsAnalyze.
 // statsAnalyze is used to handle auto-analyze and manage analyze jobs.
@@ -238,7 +242,11 @@ func CleanupCorruptedAnalyzeJobsOnDeadInstances(
 // It also analyzes newly created tables and newly added indexes.
 func (sa *statsAnalyze) HandleAutoAnalyze() (analyzed bool) {
 	_ = statsutil.CallWithSCtx(sa.statsHandle.SPool(), func(sctx sessionctx.Context) error {
-		analyzed = HandleAutoAnalyze(sctx, sa.statsHandle, sa.sysProcTracker)
+		if worker == nil {
+			jobChan = make(chan priorityqueue.AnalysisJob)
+			worker = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan, 10)
+		}
+		analyzed = HandleAutoAnalyze(sctx, sa.statsHandle, sa.sysProcTracker, jobChan)
 		return nil
 	})
 	return
@@ -265,6 +273,7 @@ func HandleAutoAnalyze(
 	sctx sessionctx.Context,
 	statsHandle statstypes.StatsHandle,
 	sysProcTracker sysproctrack.Tracker,
+	jobChan chan priorityqueue.AnalysisJob,
 ) (analyzed bool) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -276,7 +285,7 @@ func HandleAutoAnalyze(
 		}
 	}()
 	if variable.EnableAutoAnalyzePriorityQueue.Load() {
-		r := refresher.NewRefresher(statsHandle, sysProcTracker)
+		r := refresher.NewRefresher(statsHandle, sysProcTracker, jobChan)
 		err := r.RebuildTableAnalysisJobQueue()
 		if err != nil {
 			statslogutil.StatsLogger().Error("rebuild table analysis job queue failed", zap.Error(err))

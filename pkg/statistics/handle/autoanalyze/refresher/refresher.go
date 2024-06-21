@@ -53,17 +53,21 @@ type Refresher struct {
 	// Jobs is the priority queue of analysis jobs.
 	// Exported for testing purposes.
 	Jobs *priorityqueue.AnalysisPriorityQueue
+
+	jobChan chan priorityqueue.AnalysisJob
 }
 
 // NewRefresher creates a new Refresher and starts the goroutine.
 func NewRefresher(
 	statsHandle statstypes.StatsHandle,
 	sysProcTracker sysproctrack.Tracker,
+	jobChan chan priorityqueue.AnalysisJob,
 ) *Refresher {
 	r := &Refresher{
 		statsHandle:    statsHandle,
 		sysProcTracker: sysProcTracker,
 		Jobs:           priorityqueue.NewAnalysisPriorityQueue(),
+		jobChan:        jobChan,
 	}
 
 	return r
@@ -102,16 +106,21 @@ func (r *Refresher) PickOneTableAndAnalyzeByPriority() bool {
 			"Auto analyze triggered",
 			zap.Stringer("job", job),
 		)
-		err = job.Analyze(
-			r.statsHandle,
-			r.sysProcTracker,
-		)
-		if err != nil {
-			statslogutil.StatsLogger().Error(
-				"Execute auto analyze job failed",
+		if _, ok := jobs.Load(job.ID()); ok {
+			statslogutil.StatsLogger().Warn(
+				"Auto analyze job already exists",
 				zap.Stringer("job", job),
-				zap.Error(err),
 			)
+			continue
+		}
+		select {
+		case r.jobChan <- job:
+			jobs.Store(job.ID(), struct{}{})
+		default:
+			statslogutil.StatsLogger().Warn(
+				"Job channel is full",
+			)
+			break
 		}
 		// Only analyze one table each time.
 		return true
@@ -124,6 +133,9 @@ func (r *Refresher) PickOneTableAndAnalyzeByPriority() bool {
 
 // RebuildTableAnalysisJobQueue rebuilds the priority queue of analysis jobs.
 func (r *Refresher) RebuildTableAnalysisJobQueue() error {
+	statslogutil.StatsLogger().Info(
+		"Rebuilding auto analyze job queue",
+	)
 	// Reset the priority queue.
 	r.Jobs = priorityqueue.NewAnalysisPriorityQueue()
 

@@ -138,6 +138,10 @@ func (j *DynamicPartitionedTableAnalysisJob) SetWeight(weight float64) {
 	j.Weight = weight
 }
 
+func (j *DynamicPartitionedTableAnalysisJob) ID() int64 {
+	return j.GlobalTableID
+}
+
 // GetWeight gets the weight of the job.
 func (j *DynamicPartitionedTableAnalysisJob) GetWeight() float64 {
 	return j.Weight

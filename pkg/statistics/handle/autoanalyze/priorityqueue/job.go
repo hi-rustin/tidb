@@ -72,6 +72,8 @@ type AnalysisJob interface {
 	// GetIndicators gets the indicators of the job.
 	GetIndicators() Indicators
 
+	ID() int64
+
 	fmt.Stringer
 }
 

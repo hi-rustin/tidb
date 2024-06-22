@@ -90,7 +90,6 @@ func execAnalyzeStmt(
 		sqlexec.GetAnalyzeSnapshotOption(analyzeSnapshot),
 		sqlexec.GetPartitionPruneModeOption(pruneMode),
 		sqlexec.ExecOptionUseCurSession,
-		sqlexec.ExecOptionWithSysProcTrack(statsHandle.AutoAnalyzeProcID(), sysProcTracker.Track, sysProcTracker.UnTrack),
 	}
 	return statsutil.ExecWithOpts(sctx, optFuncs, sql, params...)
 }

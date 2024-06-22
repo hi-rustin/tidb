@@ -47,8 +47,11 @@ import (
 	"go.uber.org/zap"
 )
 
-var worker *refresher.Worker
-var jobChan chan priorityqueue.AnalysisJob
+var worker1 *refresher.Worker
+var jobChan1 chan priorityqueue.AnalysisJob
+
+var worker2 *refresher.Worker
+var jobChan2 chan priorityqueue.AnalysisJob
 
 // statsAnalyze implements util.StatsAnalyze.
 // statsAnalyze is used to handle auto-analyze and manage analyze jobs.
@@ -242,11 +245,15 @@ func CleanupCorruptedAnalyzeJobsOnDeadInstances(
 // It also analyzes newly created tables and newly added indexes.
 func (sa *statsAnalyze) HandleAutoAnalyze() (analyzed bool) {
 	_ = statsutil.CallWithSCtx(sa.statsHandle.SPool(), func(sctx sessionctx.Context) error {
-		if worker == nil {
-			jobChan = make(chan priorityqueue.AnalysisJob)
-			worker = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan, 10)
+		if worker1 == nil {
+			jobChan1 = make(chan priorityqueue.AnalysisJob)
+			worker1 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan1, 3)
 		}
-		analyzed = HandleAutoAnalyze(sctx, sa.statsHandle, sa.sysProcTracker, jobChan)
+		if worker2 == nil {
+			jobChan2 = make(chan priorityqueue.AnalysisJob)
+			worker2 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan2, 7)
+		}
+		analyzed = HandleAutoAnalyze(sctx, sa.statsHandle, sa.sysProcTracker, jobChan1, jobChan2)
 		return nil
 	})
 	return
@@ -273,7 +280,8 @@ func HandleAutoAnalyze(
 	sctx sessionctx.Context,
 	statsHandle statstypes.StatsHandle,
 	sysProcTracker sysproctrack.Tracker,
-	jobChan chan priorityqueue.AnalysisJob,
+	jobChan1 chan priorityqueue.AnalysisJob,
+	jobChan2 chan priorityqueue.AnalysisJob,
 ) (analyzed bool) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -285,7 +293,7 @@ func HandleAutoAnalyze(
 		}
 	}()
 	if variable.EnableAutoAnalyzePriorityQueue.Load() {
-		r := refresher.NewRefresher(statsHandle, sysProcTracker, jobChan)
+		r := refresher.NewRefresher(statsHandle, sysProcTracker, jobChan1, jobChan2)
 		err := r.RebuildTableAnalysisJobQueue()
 		if err != nil {
 			statslogutil.StatsLogger().Error("rebuild table analysis job queue failed", zap.Error(err))

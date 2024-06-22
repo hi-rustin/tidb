@@ -125,6 +125,10 @@ func (j *NonPartitionedTableAnalysisJob) ID() int64 {
 	return j.TableID
 }
 
+func (j *NonPartitionedTableAnalysisJob) IsPartition() bool {
+	return false
+}
+
 // String implements fmt.Stringer interface.
 func (j *NonPartitionedTableAnalysisJob) String() string {
 	return fmt.Sprintf(

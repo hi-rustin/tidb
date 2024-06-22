@@ -54,20 +54,23 @@ type Refresher struct {
 	// Exported for testing purposes.
 	Jobs *priorityqueue.AnalysisPriorityQueue
 
-	jobChan chan priorityqueue.AnalysisJob
+	jobChan1 chan priorityqueue.AnalysisJob
+	jobChan2 chan priorityqueue.AnalysisJob
 }
 
 // NewRefresher creates a new Refresher and starts the goroutine.
 func NewRefresher(
 	statsHandle statstypes.StatsHandle,
 	sysProcTracker sysproctrack.Tracker,
-	jobChan chan priorityqueue.AnalysisJob,
+	jobChan1 chan priorityqueue.AnalysisJob,
+	jobChan2 chan priorityqueue.AnalysisJob,
 ) *Refresher {
 	r := &Refresher{
 		statsHandle:    statsHandle,
 		sysProcTracker: sysProcTracker,
 		Jobs:           priorityqueue.NewAnalysisPriorityQueue(),
-		jobChan:        jobChan,
+		jobChan1:       jobChan1,
+		jobChan2:       jobChan2,
 	}
 
 	return r
@@ -113,12 +116,32 @@ func (r *Refresher) PickOneTableAndAnalyzeByPriority() bool {
 			)
 			continue
 		}
-		select {
-		case r.jobChan <- job:
-			jobs.Store(job.ID(), struct{}{})
-		default:
+		job1IsFull := false
+		job2IsFull := false
+		if job.IsPartition() {
+			select {
+			case r.jobChan1 <- job:
+				jobs.Store(job.ID(), struct{}{})
+			default:
+				statslogutil.StatsLogger().Warn(
+					"Job channel is full",
+				)
+				job1IsFull = true
+			}
+		} else {
+			select {
+			case r.jobChan2 <- job:
+				jobs.Store(job.ID(), struct{}{})
+			default:
+				statslogutil.StatsLogger().Warn(
+					"Job channel2 is full",
+				)
+				job2IsFull = true
+			}
+		}
+		if job1IsFull && job2IsFull {
 			statslogutil.StatsLogger().Warn(
-				"Job channel is full",
+				"Both job channels are full",
 			)
 			break
 		}
@@ -558,7 +581,7 @@ func CalculateIndicatorsForPartitions(
 	}
 
 	avgChange = totalChangePercent / count
-	avgSize = (totalSize / count) * float64(len(tblInfo.Partition.Definitions))
+	avgSize = totalSize / count
 	avgLastAnalyzeDuration = totalLastAnalyzeDuration / time.Duration(count)
 
 	return avgChange, avgSize, avgLastAnalyzeDuration, partitionNames

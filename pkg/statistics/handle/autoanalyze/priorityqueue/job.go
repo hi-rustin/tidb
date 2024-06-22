@@ -74,6 +74,8 @@ type AnalysisJob interface {
 
 	ID() int64
 
+	IsPartition() bool
+
 	fmt.Stringer
 }
 

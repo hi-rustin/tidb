@@ -81,6 +81,12 @@ func (r *Refresher) PickOneTableAndAnalyzeByPriority() bool {
 	if !r.autoAnalysisTimeWindow.isWithinTimeWindow(time.Now()) {
 		return false
 	}
+	if r.Jobs.Len() == 0 {
+		statslogutil.SingletonStatsSamplerLogger().Info(
+			"No table to analyze",
+		)
+		return false
+	}
 
 	se, err := r.statsHandle.SPool().Get()
 	if err != nil {
@@ -145,13 +151,9 @@ func (r *Refresher) PickOneTableAndAnalyzeByPriority() bool {
 			)
 			break
 		}
-		// Only analyze one table each time.
-		return true
 	}
-	statslogutil.SingletonStatsSamplerLogger().Info(
-		"No table to analyze",
-	)
-	return false
+
+	return true
 }
 
 // RebuildTableAnalysisJobQueue rebuilds the priority queue of analysis jobs.

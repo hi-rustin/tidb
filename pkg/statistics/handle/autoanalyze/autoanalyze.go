@@ -247,11 +247,11 @@ func (sa *statsAnalyze) HandleAutoAnalyze() (analyzed bool) {
 	_ = statsutil.CallWithSCtx(sa.statsHandle.SPool(), func(sctx sessionctx.Context) error {
 		if worker1 == nil {
 			jobChan1 = make(chan priorityqueue.AnalysisJob)
-			worker1 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan1, 5)
+			worker1 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan1, 3)
 		}
 		if worker2 == nil {
 			jobChan2 = make(chan priorityqueue.AnalysisJob)
-			worker2 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan2, 5)
+			worker2 = refresher.NewWorker(sa.statsHandle, sa.sysProcTracker, jobChan2, 7)
 		}
 		analyzed = HandleAutoAnalyze(sctx, sa.statsHandle, sa.sysProcTracker, jobChan1, jobChan2)
 		return nil

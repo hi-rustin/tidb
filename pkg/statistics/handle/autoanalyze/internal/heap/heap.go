@@ -83,14 +83,14 @@ func (h *heapData[T]) Swap(i, j int) {
 	item.index = j
 }
 
-func (h *heapData[T]) Push(kv interface{}) {
+func (h *heapData[T]) Push(kv any) {
 	keyValue := kv.(*itemKeyValue[T])
 	n := len(h.queue)
 	h.items[keyValue.key] = &heapItem[T]{keyValue.obj, n}
 	h.queue = append(h.queue, keyValue.key)
 }
 
-func (h *heapData[T]) Pop() interface{} {
+func (h *heapData[T]) Pop() any {
 	key := h.queue[len(h.queue)-1]
 	h.queue = h.queue[:len(h.queue)-1]
 	item, ok := h.items[key]

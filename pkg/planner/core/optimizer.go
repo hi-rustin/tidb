@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pingcap/errors"
@@ -1039,6 +1040,9 @@ func isLogicalRuleDisabled(r logicalOptRule) bool {
 }
 
 func physicalOptimize(logic base.LogicalPlan, planCounter *base.PlanCounterTp) (plan base.PhysicalPlan, cost float64, err error) {
+	if strings.Contains(ToString(logic), "t2") {
+		logutil.BgLogger().Debug("physicalOptimize", zap.String("plan", ToString(logic)))
+	}
 	if logic.SCtx().GetSessionVars().StmtCtx.EnableOptimizerDebugTrace {
 		debugtrace.EnterContextCommon(logic.SCtx())
 		defer debugtrace.LeaveContextCommon(logic.SCtx())

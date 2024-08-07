@@ -659,8 +659,13 @@ func (b *PlanBuilder) buildJoin(ctx context.Context, joinNode *ast.Join) (base.L
 	b.handleHelper.mergeAndPush(handleMap1, handleMap2)
 
 	joinPlan := LogicalJoin{StraightJoin: joinNode.StraightJoin || b.inStraightJoin}.Init(b.ctx, b.getSelectOffset())
+
 	joinPlan.SetChildren(leftPlan, rightPlan)
 	joinPlan.SetSchema(expression.MergeSchema(leftPlan.Schema(), rightPlan.Schema()))
+	if strings.Contains(ToString(joinPlan), "t2") {
+		logutil.Logger(ctx).Info("joinPlan", zap.String("joinPlan", ToString(joinPlan)))
+	}
+
 	joinPlan.SetOutputNames(make([]*types.FieldName, leftPlan.Schema().Len()+rightPlan.Schema().Len()))
 	copy(joinPlan.OutputNames(), leftPlan.OutputNames())
 	copy(joinPlan.OutputNames()[leftPlan.Schema().Len():], rightPlan.OutputNames())
